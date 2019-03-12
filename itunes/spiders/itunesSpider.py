@@ -16,23 +16,13 @@ class ItunesspiderSpider(Spider):
     name = "itunesSpider"
     allowed_domains = ["itunes.apple.com"]
     start_urls = (
-      "https://itunes.apple.com/us/genre/podcasts-religion-spirituality/id1314?mt=2",
-        # "https://itunes.apple.com/us/genre/podcasts-buddhism/id1438?mt=2",
-        # "https://itunes.apple.com/us/genre/podcasts-christianity/id1439?mt=2",
-        # "https://itunes.apple.com/us/genre/podcasts-hinduism/id1463?mt=2",
-        # "https://itunes.apple.com/us/genre/podcasts-judaism/id1441?mt=2",
-        # "https://itunes.apple.com/us/genre/podcasts-other/id1464?mt=2",
-        # "https://itunes.apple.com/us/genre/podcasts-spirituality/id1444?mt=2",
+      "https://itunes.apple.com/us/genre/podcasts-business/id1321?mt=2",
     )
 
     def parse(self, response):
-        """ Extract the sub genres"""
-        print("parse")
-        sel = Selector(response)
-        selector = "div#genre-nav div ul li ul li ::attr(href)"
-        urls = sel.css(selector).extract()
-        for url in urls:
-            yield Request(url, callback=self.parse_popular, dont_filter=True)
+        """ Start from alpha of the current genre"""
+        print(response.url)
+        yield Request(response.url, callback=self.parse_alpha)
 
     def parse_alpha(self, response):
         """ extract the alpha letters links"""
@@ -41,15 +31,7 @@ class ItunesspiderSpider(Spider):
 
         for url in urls:
             print(url)
-            #yield Request(url, callback=self.parse_page)
-
-    def parse_popular(self, response):
-        """ extract the popular link"""
-        sel = Selector(response)
-        urls = sel.css("div#selectedgenre div.alpha a::attr(href)").extract()
-        for url in urls:
-            print("parse_popular: "+url)
-            yield Request(url, callback=self.parse_page, dont_filter=True)
+            yield Request(url, callback=self.parse_page)
 
     def parse_page(self, response):
         """ Extract the paginate numbers links """
@@ -62,7 +44,7 @@ class ItunesspiderSpider(Spider):
         urls = sel.css(selector).extract()
         if len(urls) > 0:
             for url in urls:
-                yield Request(url, callback=self.parse_podcastlist, dont_filter=True)
+                yield Request(url, callback=self.parse_podcastlist)
         else:
           print("parsing single page:" + response.url)
           yield Request(response.url, callback=self.parse_podcastlist)
